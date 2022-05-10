@@ -237,7 +237,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+              padding: const EdgeInsets.only(top: 20, left: 10, right: 10),
               child: ChartTile(data: electricData),
             ),
           ],

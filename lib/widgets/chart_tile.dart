@@ -7,8 +7,33 @@ import 'package:flutter/material.dart' show Theme;
 
 class ChartTile extends StatelessWidget {
   final List data;
+  late double avgUsage;
 
-  const ChartTile({Key? key, required this.data}) : super(key: key);
+  ChartTile({Key? key, required this.data}) : super(key: key) {
+    if (data.length > 2) {
+      List<double> eachKwhPerDay = [];
+
+      List beforeToday = data
+          .where((note) => DateTime.now().difference(note['time']).inHours >= 0)
+          .toList();
+
+      if (beforeToday.isEmpty) {
+        avgUsage = 0;
+      } else {
+        beforeToday.removeAt(0);
+
+        for (var charge in beforeToday) {
+          eachKwhPerDay.add(
+              ElectricDetail(index: data.indexOf(charge), historyData: data)
+                  .kwhPerDay()['result']);
+        }
+
+        avgUsage = eachKwhPerDay.reduce((a, b) => a + b) / eachKwhPerDay.length;
+      }
+    } else {
+      avgUsage = 0;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -16,105 +41,137 @@ class ChartTile extends StatelessWidget {
       children: [
         Container(
           width: MediaQuery.of(context).size.width * 0.95,
-          height: 100,
           margin: const EdgeInsets.only(bottom: 20),
           padding:
-              const EdgeInsets.only(top: 10, bottom: 10, right: 23, left: 23),
+              const EdgeInsets.only(top: 20, bottom: 20, right: 23, left: 23),
           decoration: BoxDecoration(
             color: Theme.of(context).primaryColor,
             borderRadius: BorderRadius.circular(10),
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          child: Column(
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    "Amount of Electricity Now",
-                    style: Theme.of(context).textTheme.headline4,
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        "Amount of Electricity Now",
+                        style: Theme.of(context).textTheme.headline4,
+                      ),
+                      Text(
+                        "(Estimate)",
+                        style: Theme.of(context).textTheme.bodyText2,
+                      ),
+                    ],
                   ),
-                  Text(
-                    "(Estimate)",
-                    style: Theme.of(context).textTheme.bodyText2,
+                  RichText(
+                    text: TextSpan(
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodyText1!
+                          .copyWith(fontSize: 20),
+                      children: [
+                        TextSpan(
+                          text: () {
+                            List beforeToday = data
+                                .where((note) =>
+                                    DateTime.now()
+                                        .difference(note['time'])
+                                        .inHours >=
+                                    0)
+                                .toList();
+
+                            if (beforeToday.isEmpty) {
+                              return "0";
+                            }
+                            Map latest = beforeToday[0];
+                            beforeToday.removeAt(0);
+
+                            String getData(element) {
+                              return data
+                                  .indexOf(data
+                                      .where((f) => f['id'] == element['id'])
+                                      .toList()[0])
+                                  .toString();
+                            }
+
+                            if (beforeToday.isEmpty) {
+                              return "0";
+                            } else if (beforeToday.length == 1) {
+                              return NumberFormat("###.#").format(
+                                latest['lastSize'] -
+                                    (ElectricDetail(
+                                                index: data
+                                                    .indexOf(beforeToday[0]),
+                                                historyData: data)
+                                            .kwhPerDay()['result'] *
+                                        ElectricDetail(
+                                                index:
+                                                    int.parse(getData(latest)),
+                                                historyData: data)
+                                            .todayRange()['value']),
+                              );
+                            }
+                            double result = latest['lastSize'] -
+                                (avgUsage *
+                                    ElectricDetail(
+                                            index: int.parse(getData(latest)),
+                                            historyData: data)
+                                        .todayRange()['value']);
+
+                            return (result < 0)
+                                ? "0"
+                                : NumberFormat("##.#").format(result);
+                          }(),
+                        ),
+                        const TextSpan(
+                          text: ' KWH',
+                          style: TextStyle(fontSize: 12),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
-              RichText(
-                text: TextSpan(
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodyText1!
-                      .copyWith(fontSize: 20),
-                  children: [
-                    TextSpan(
-                      text: () {
-                        List beforeToday = data
-                            .where((note) =>
-                                DateTime.now()
-                                    .difference(note['time'])
-                                    .inHours >=
-                                0)
-                            .toList();
-
-                        if (beforeToday.isEmpty) {
-                          return "0";
-                        }
-                        Map latest = beforeToday[0];
-                        beforeToday.removeAt(0);
-
-                        String getData(element) {
-                          return data
-                              .indexOf(data
-                                  .where((f) => f['id'] == element['id'])
-                                  .toList()[0])
-                              .toString();
-                        }
-
-                        if (beforeToday.isEmpty) {
-                          return "0";
-                        } else if (beforeToday.length == 1) {
-                          return NumberFormat("###.#").format(
-                              latest['lastSize'] -
-                                  (ElectricDetail(
-                                              index:
-                                                  data.indexOf(beforeToday[0]),
-                                              historyData: data)
-                                          .kwhPerDay()['result'] *
-                                      ElectricDetail(
-                                              index: int.parse(getData(latest)),
-                                              historyData: data)
-                                          .todayRange()['value']));
-                        }
-
-                        double kwhPerDayAvg = 0;
-                        for (var element in beforeToday) {
-                          kwhPerDayAvg += ElectricDetail(
-                                  index: int.parse(getData(element)),
-                                  historyData: data)
-                              .kwhPerDay()['result'];
-                        }
-                        double result = latest['lastSize'] -
-                            (kwhPerDayAvg /
-                                beforeToday.length *
-                                ElectricDetail(
-                                        index: int.parse(getData(latest)),
-                                        historyData: data)
-                                    .todayRange()['value']);
-
-                        return (result < 0)
-                            ? "0"
-                            : NumberFormat("##.#").format(result);
-                      }(),
-                    ),
-                    const TextSpan(
-                      text: ' KWH',
-                      style: TextStyle(fontSize: 12),
-                    ),
-                  ],
-                ),
+              const SizedBox(
+                height: 30,
               ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Average Electricity Usage",
+                        style: Theme.of(context).textTheme.headline4,
+                      ),
+                      Text(
+                        "(Per day)",
+                        style: Theme.of(context).textTheme.bodyText2,
+                      ),
+                    ],
+                  ),
+                  RichText(
+                      text: TextSpan(
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyText1!
+                              .copyWith(fontSize: 20),
+                          children: [
+                        TextSpan(text: () {
+                          return NumberFormat("##.#").format(avgUsage);
+                        }()),
+                        const TextSpan(
+                          text: ' KWH/day',
+                          style: TextStyle(fontSize: 12),
+                        ),
+                      ]))
+                ],
+              )
             ],
           ),
         ),
@@ -171,7 +228,7 @@ class ChartTile extends StatelessWidget {
                             minimum: data[0]['time'],
                             maximum: data.length < 11
                                 ? data[data.length - 1]['time']
-                                : 10,
+                                : data[10]['time'],
                             // set intervalType to fit the data
                             intervalType: DateTimeIntervalType.days,
                             dateFormat: DateFormat('dd-MM-yy'),

@@ -46,7 +46,9 @@ class GraphPage extends StatelessWidget {
         primaryXAxis: DateTimeAxis(
             majorGridLines: const MajorGridLines(width: 0),
             minimum: data[0]['time'],
-            maximum: data.length < 11 ? data[data.length - 1]['time'] : 10,
+            maximum: data.length < 11
+                ? data[data.length - 1]['time']
+                : data[10]['time'],
             // set intervalType to fit the data
             intervalType: DateTimeIntervalType.days,
             dateFormat: DateFormat('dd-MM-yy'),
