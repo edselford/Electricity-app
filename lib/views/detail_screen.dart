@@ -264,7 +264,7 @@ class DetailPage extends StatelessWidget {
                       ),
                     ),
                     DetailListTile(
-                      title: 'Electric / day',
+                      title: 'Usage / day',
                       value: (index != 0)
                           ? kwhText(
                               detailManager.kwhPerDay()['result'].toString(),

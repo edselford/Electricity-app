@@ -4,36 +4,12 @@ import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:flutter/material.dart' show Theme;
+import 'package:electric_charge_note/models/electric_manager.dart';
 
 class ChartTile extends StatelessWidget {
   final List data;
-  late double avgUsage;
 
-  ChartTile({Key? key, required this.data}) : super(key: key) {
-    if (data.length > 2) {
-      List<double> eachKwhPerDay = [];
-
-      List beforeToday = data
-          .where((note) => DateTime.now().difference(note['time']).inHours >= 0)
-          .toList();
-
-      if (beforeToday.isEmpty) {
-        avgUsage = 0;
-      } else {
-        beforeToday.removeAt(0);
-
-        for (var charge in beforeToday) {
-          eachKwhPerDay.add(
-              ElectricDetail(index: data.indexOf(charge), historyData: data)
-                  .kwhPerDay()['result']);
-        }
-
-        avgUsage = eachKwhPerDay.reduce((a, b) => a + b) / eachKwhPerDay.length;
-      }
-    } else {
-      avgUsage = 0;
-    }
-  }
+  const ChartTile({Key? key, required this.data}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -75,57 +51,7 @@ class ChartTile extends StatelessWidget {
                           .copyWith(fontSize: 20),
                       children: [
                         TextSpan(
-                          text: () {
-                            List beforeToday = data
-                                .where((note) =>
-                                    DateTime.now()
-                                        .difference(note['time'])
-                                        .inHours >=
-                                    0)
-                                .toList();
-
-                            if (beforeToday.isEmpty) {
-                              return "0";
-                            }
-                            Map latest = beforeToday[0];
-                            beforeToday.removeAt(0);
-
-                            String getData(element) {
-                              return data
-                                  .indexOf(data
-                                      .where((f) => f['id'] == element['id'])
-                                      .toList()[0])
-                                  .toString();
-                            }
-
-                            if (beforeToday.isEmpty) {
-                              return "0";
-                            } else if (beforeToday.length == 1) {
-                              return NumberFormat("###.#").format(
-                                latest['lastSize'] -
-                                    (ElectricDetail(
-                                                index: data
-                                                    .indexOf(beforeToday[0]),
-                                                historyData: data)
-                                            .kwhPerDay()['result'] *
-                                        ElectricDetail(
-                                                index:
-                                                    int.parse(getData(latest)),
-                                                historyData: data)
-                                            .todayRange()['value']),
-                              );
-                            }
-                            double result = latest['lastSize'] -
-                                (avgUsage *
-                                    ElectricDetail(
-                                            index: int.parse(getData(latest)),
-                                            historyData: data)
-                                        .todayRange()['value']);
-
-                            return (result < 0)
-                                ? "0"
-                                : NumberFormat("##.#").format(result);
-                          }(),
+                          text: ElectricManager(data: data).electricAmount(),
                         ),
                         const TextSpan(
                           text: ' KWH',
@@ -156,20 +82,52 @@ class ChartTile extends StatelessWidget {
                     ],
                   ),
                   RichText(
-                      text: TextSpan(
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyText1!
-                              .copyWith(fontSize: 20),
-                          children: [
+                    text: TextSpan(
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodyText1!
+                          .copyWith(fontSize: 20),
+                      children: [
                         TextSpan(text: () {
-                          return NumberFormat("##.#").format(avgUsage);
+                          return NumberFormat("##.#")
+                              .format(ElectricManager(data: data).avgUsage);
                         }()),
                         const TextSpan(
                           text: ' KWH/day',
                           style: TextStyle(fontSize: 12),
                         ),
-                      ]))
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(
+                height: 30,
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Estimate Price",
+                        style: Theme.of(context).textTheme.headline4,
+                      ),
+                      Text(
+                        "(Per day)",
+                        style: Theme.of(context).textTheme.bodyText2,
+                      ),
+                    ],
+                  ),
+                  Text(
+                    ElectricManager(data: data)
+                        .kwhToRupiah(ElectricManager(data: data).avgUsage),
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyText1!
+                        .copyWith(fontSize: 20),
+                  ),
                 ],
               )
             ],
@@ -178,8 +136,12 @@ class ChartTile extends StatelessWidget {
         Container(
           width: MediaQuery.of(context).size.width * 0.95,
           height: 500,
-          padding:
-              const EdgeInsets.only(top: 10, bottom: 10, right: 23, left: 10),
+          padding: const EdgeInsets.only(
+            top: 10,
+            bottom: 10,
+            right: 23,
+            left: 10,
+          ),
           decoration: BoxDecoration(
             color: Theme.of(context).primaryColor,
             borderRadius: BorderRadius.circular(10),
