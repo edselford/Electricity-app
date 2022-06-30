@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:electric_charge_note/models/hive_manager.dart';
+import 'package:electric_charge_note/models/data_manager.dart';
 import 'package:electric_charge_note/views/add_screen.dart';
 import 'package:electric_charge_note/views/about_screen.dart';
 import 'package:electric_charge_note/widgets/chart_tile.dart';
@@ -6,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:electric_charge_note/widgets/latest_tile.dart';
 import 'package:electric_charge_note/widgets/list_tile.dart';
+import 'package:intl/intl.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -16,7 +19,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   HiveManager hiveManager = HiveManager();
-
+  DataManager dataManager = DataManager();
   List electricData = [];
 
   @override
@@ -132,6 +135,75 @@ class _HomeScreenState extends State<HomeScreen> {
                             Navigator.of(context).pop();
                           },
                         ),
+                        CupertinoActionSheetAction(
+                            child: const Text('Save Data'),
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                              showCupertinoDialog(
+                                  context: context,
+                                  builder: (context) {
+                                    return electricData.isNotEmpty
+                                        ? CupertinoAlertDialog(
+                                            title:
+                                                const Text('Choose the type!'),
+                                            content: const Text(
+                                                'Please select file type you want to share'),
+                                            actions: [
+                                                CupertinoDialogAction(
+                                                  child: const Text('txt'),
+                                                  onPressed: () {
+                                                    List<dynamic> dataExport =
+                                                        electricData;
+                                                    dataManager.shareText(
+                                                        dataExport
+                                                            .map((x) {
+                                                              return "==========\nindex : ${dataExport.indexOf(x)}\ntime : ${DateFormat("dd-MMMM-yyyy HH:mm").format(x['time'])}\nsize : ${x['size']}\nfirstSize : ${x['firstSize']}\nlastSize : ${x['lastSize']}\nid : ${x['id']}\n\n";
+                                                            })
+                                                            .toList()
+                                                            .reduce((value,
+                                                                    element) =>
+                                                                value +
+                                                                element));
+                                                    Navigator.of(context).pop();
+                                                    setState(() {
+                                                      setElectricData();
+                                                    });
+                                                  },
+                                                ),
+                                                CupertinoDialogAction(
+                                                    child: const Text('json'),
+                                                    onPressed: () {
+                                                      List<dynamic> dataExport =
+                                                          electricData;
+                                                      dataManager.shareText(
+                                                          jsonEncode(dataExport
+                                                              .map((x) {
+                                                        x['time'] = x['time']
+                                                            .toIso8601String();
+                                                        return x;
+                                                      }).toList()));
+                                                      Navigator.of(context)
+                                                          .pop();
+                                                      setState(() {
+                                                        setElectricData();
+                                                      });
+                                                    })
+                                              ])
+                                        : CupertinoAlertDialog(
+                                            title: const Text("Data is empty"),
+                                            content: const Text(
+                                                "You can't save data if data is empty"),
+                                            actions: [
+                                              CupertinoDialogAction(
+                                                child: const Text('Ok'),
+                                                onPressed: () {
+                                                  Navigator.of(context).pop();
+                                                },
+                                              )
+                                            ],
+                                          );
+                                  });
+                            }),
                         CupertinoActionSheetAction(
                           child: const Text('About this app'),
                           onPressed: () {

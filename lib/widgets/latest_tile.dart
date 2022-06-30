@@ -23,13 +23,18 @@ class LatestTile extends StatelessWidget {
       index: 0,
       historyData: allData,
     );
+
+    if (data['time'] is String) {
+      data['time'] = DateTime.parse(data['time']);
+    }
   }
 
   void showDetail(BuildContext context) {
     Navigator.of(context).push(
       CupertinoPageRoute(
-        builder: (context) =>
-            DetailPage(index: 0, historyData: allData, callback: callback),
+        builder: (context) {
+          return DetailPage(index: 0, historyData: allData, callback: callback);
+        },
       ),
     );
   }
@@ -42,7 +47,7 @@ class LatestTile extends StatelessWidget {
           context: context,
           builder: (BuildContext context) => CupertinoActionSheet(
             title: Text(
-              'Tile Menu [${DateFormat('dd-MM-yyyy HH:mm:ss').format(data['time'])}]',
+              'Tile Menu [${DateFormat('dd-MM-yyyy HH:mm:ss').format(DateTime.parse(data['time'].toString()))}]',
             ),
             message: const Text('What do you want to do?'),
             actions: [

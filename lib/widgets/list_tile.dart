@@ -46,8 +46,10 @@ class NoteListTile extends StatelessWidget {
           showCupertinoModalPopup(
             context: context,
             builder: (BuildContext context) => CupertinoActionSheet(
-              title: Text(
-                  'Tile Menu [${DateFormat('dd-MM-yyyy HH:mm:ss').format(data['time'])}]'),
+              title: () {
+                return Text(
+                    'Tile Menu [${DateFormat('dd-MM-yyyy HH:mm:ss').format(data['time'])}]');
+              }(),
               message: const Text('What do you want to do?'),
               actions: [
                 CupertinoActionSheetAction(
