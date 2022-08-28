@@ -1,167 +1,76 @@
+import 'package:electric_charge_note/models/note.dart';
 import 'package:electric_charge_note/models/hive_manager.dart';
-import 'package:electric_charge_note/views/add_screen.dart';
-import 'package:electric_charge_note/views/about_screen.dart';
-import 'package:electric_charge_note/widgets/chart_tile.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:electric_charge_note/models/statusbar.dart';
+import 'package:electric_charge_note/widgets/column_builder.dart';
+import 'package:electric_charge_note/widgets/info_tile.dart';
 import 'package:electric_charge_note/widgets/latest_tile.dart';
 import 'package:electric_charge_note/widgets/list_tile.dart';
+import 'package:electric_charge_note/widgets/navbar.dart';
+import 'package:flutter/material.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
-
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  HiveManager hiveManager = HiveManager();
-
-  List electricData = [];
+  HiveManager db = HiveManager();
+  List<Note> notelist = [];
 
   @override
   void initState() {
-    setElectricData();
+    setNotelist();
     super.initState();
   }
 
-  void callback() {
+  callback() {
     setState(() {
-      setElectricData();
+      setNotelist();
     });
   }
 
-  void setElectricData() {
-    electricData = hiveManager.getAllData().entries.map((x) {
-      x.value['id'] = x.key;
-      return x.value;
+  void setNotelist() {
+    notelist = db.getAllData().entries.map((x) {
+      return Note(
+          time: x.value["time"],
+          size: x.value["size"],
+          firstSize: x.value["firstSize"],
+          lastSize: x.value["lastSize"],
+          id: x.key);
     }).toList();
-    electricData.sort((a, b) => b['time'].compareTo(a['time']));
+    notelist.sort((a, b) => b.time.compareTo(a.time));
   }
 
   @override
   Widget build(BuildContext context) {
+    refreshStatusBar();
     return SafeArea(
       child: NestedScrollView(
-        headerSliverBuilder: (context, innerBoxScrolled) {
-          return [
-            CupertinoSliverNavigationBar(
-              transitionBetweenRoutes: false,
-              padding: const EdgeInsetsDirectional.only(start: 15, end: 5),
-              largeTitle: Text(
-                'Electrical Notes',
-                style: TextStyle(color: Theme.of(context).secondaryHeaderColor),
-              ),
-              trailing: CupertinoButton(
-                padding: EdgeInsets.zero,
-                child: const Icon(CupertinoIcons.add),
-                onPressed: () {
-                  Navigator.of(context).push(
-                    CupertinoPageRoute(
-                      builder: (context) => AddPage(callback: callback),
-                    ),
-                  );
-                },
-              ),
-              leading: CupertinoButton(
-                padding: EdgeInsets.zero,
-                child: const Text('Home'),
-                onPressed: () {
-                  showCupertinoModalPopup(
-                    context: context,
-                    builder: (BuildContext context) => CupertinoActionSheet(
-                      title: const Text('Menu'),
-                      actions: [
-                        CupertinoActionSheetAction(
-                          child: const Text('Clear all data'),
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                            showCupertinoDialog(
-                              context: context,
-                              builder: (context) {
-                                return CupertinoAlertDialog(
-                                  title: const Text('Clear all data'),
-                                  content: const Text(
-                                      'Are you sure you want to clear all data?'),
-                                  actions: [
-                                    CupertinoDialogAction(
-                                      child: const Text('Cancel'),
-                                      onPressed: () {
-                                        Navigator.of(context).pop();
-                                      },
-                                    ),
-                                    CupertinoDialogAction(
-                                      child: const Text('Clear'),
-                                      onPressed: () {
-                                        hiveManager.clearAll();
-                                        Navigator.of(context).pop();
-                                        showCupertinoDialog(
-                                          context: context,
-                                          builder: (BuildContext context) =>
-                                              CupertinoAlertDialog(
-                                            title: const Text(
-                                                'Clearing Data Succefully'),
-                                            actions: [
-                                              CupertinoDialogAction(
-                                                child: const Text('Ok'),
-                                                onPressed: () {
-                                                  setState(() {
-                                                    setElectricData();
-                                                  });
-                                                  Navigator.of(context).pop();
-                                                },
-                                              ),
-                                            ],
-                                          ),
-                                          barrierDismissible: false,
-                                        );
-                                      },
-                                    ),
-                                  ],
-                                );
-                              },
-                            );
-                          },
-                        ),
-                        CupertinoActionSheetAction(
-                          child: const Text('Refresh'),
-                          onPressed: () {
-                            setState(() {
-                              setElectricData();
-                            });
-                            Navigator.of(context).pop();
-                          },
-                        ),
-                        CupertinoActionSheetAction(
-                          child: const Text('About this app'),
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                            Navigator.of(context).push(
-                              CupertinoPageRoute(
-                                builder: (context) => const AboutPage(),
-                              ),
-                            );
-                          },
-                        ),
-                      ],
-                      cancelButton: CupertinoActionSheetAction(
-                        child: const Text('Cancel'),
-                        isDefaultAction: true,
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ];
-        },
         body: ListView(
           children: [
+            (notelist.length > 1)
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                        Padding(
+                          padding: const EdgeInsets.only(
+                              left: 35, top: 20, bottom: 10),
+                          child: Text(
+                            'Dashboard',
+                            style: Theme.of(context).textTheme.headline2,
+                          ),
+                        ),
+                        Padding(
+                            padding: EdgeInsets.symmetric(
+                              horizontal:
+                                  MediaQuery.of(context).size.width * 0.025,
+                            ),
+                            child: InfoTile(notelist: notelist))
+                      ])
+                : const SizedBox(),
             Padding(
-              padding: const EdgeInsets.only(left: 35, top: 20, bottom: 20),
+              padding: const EdgeInsets.only(left: 35, top: 10, bottom: 20),
               child: Text(
                 'Latest',
                 style: Theme.of(context).textTheme.headline2,
@@ -169,11 +78,12 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             Padding(
               padding: EdgeInsets.symmetric(
-                  horizontal: MediaQuery.of(context).size.width * 0.025),
-              child: (electricData.isNotEmpty)
+                horizontal: MediaQuery.of(context).size.width * 0.025,
+              ),
+              child: (notelist.isNotEmpty)
                   ? LatestTile(
-                      data: electricData[0],
-                      allData: electricData,
+                      note: notelist[0],
+                      notelist: notelist,
                       callback: callback,
                     )
                   : Container(
@@ -181,7 +91,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(10),
                           color: Theme.of(context).primaryColor),
-                      child: const Center(child: Text('No Data')),
+                      child: const Center(
+                        child: Text('No Data'),
+                      ),
                     ),
             ),
             Padding(
@@ -201,47 +113,44 @@ class _HomeScreenState extends State<HomeScreen> {
                 decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(10),
                     color: Theme.of(context).primaryColor),
-                child: Column(
-                  children: (!(electricData.length <= 1))
-                      ? (() {
-                          List<Widget> result = [];
-                          int maxLine = 10;
-                          for (int i = 1; i <= maxLine; i++) {
-                            try {
-                              result.add(
-                                NoteListTile(
-                                  index: i,
-                                  electricData: electricData,
-                                  isLast: (i == maxLine ||
-                                          i == electricData.length - 1)
-                                      ? true
-                                      : false,
-                                  callback: callback,
-                                ),
-                              );
-                            } catch (e) {
-                              break;
-                            }
-                          }
-                          return result;
-                        })()
-                      : [
-                          const SizedBox(
-                            height: 188,
-                            child: Center(
-                              child: Text('No Data'),
-                            ),
-                          ),
-                        ],
-                ),
+                child: (notelist.isNotEmpty && notelist.length != 1)
+                    ? ColumnBuilder(
+                        itemCount: notelist.length - 1,
+                        itemBuilder: (context, index) {
+                          return NoteListTile(
+                            note: notelist[index + 1],
+                            notelist: notelist,
+                            callback: callback,
+                            isLast:
+                                (index == notelist.length - 2) ? true : false,
+                          );
+                        },
+                      )
+                    : Container(
+                        height: 188,
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10),
+                            color: Theme.of(context).primaryColor),
+                        child: const Center(
+                          child: Text('No Data'),
+                        ),
+                      ),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.only(top: 20, left: 10, right: 10),
-              child: ChartTile(data: electricData),
-            ),
+            const SizedBox(
+              height: 20,
+            )
           ],
         ),
+        headerSliverBuilder: ((context, innerBoxIsScrolled) {
+          return [
+            Navbar(callback: () {
+              setState(() {
+                setNotelist();
+              });
+            })
+          ];
+        }),
       ),
     );
   }

@@ -1,4 +1,5 @@
 import 'package:electric_charge_note/models/hive_manager.dart';
+import 'package:electric_charge_note/models/statusbar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
@@ -56,6 +57,7 @@ class _AddPageState extends State<AddPage> {
 
   @override
   Widget build(BuildContext context) {
+    refreshStatusBar();
     return CupertinoPageScaffold(
       backgroundColor: Theme.of(context).backgroundColor,
       navigationBar: CupertinoNavigationBar(
@@ -69,7 +71,8 @@ class _AddPageState extends State<AddPage> {
                   title: const Text('Menu'),
                   actions: [
                     CupertinoActionSheetAction(
-                      child: const Text('Clear All'),
+                      child: Text('Clear All',
+                          style: Theme.of(context).textTheme.headline5),
                       onPressed: () {
                         firstSize.text = '';
                         lastSize.text = '';
@@ -82,7 +85,8 @@ class _AddPageState extends State<AddPage> {
                     )
                   ],
                   cancelButton: CupertinoActionSheetAction(
-                    child: const Text('Cancel'),
+                    child: Text('Cancel',
+                        style: Theme.of(context).textTheme.headline5),
                     onPressed: () {
                       Navigator.of(context).pop();
                     },
@@ -93,12 +97,19 @@ class _AddPageState extends State<AddPage> {
           },
           child: Text(
             'Add Data',
-            style: TextStyle(color: Theme.of(context).secondaryHeaderColor),
+            style: TextStyle(
+              color: Theme.of(context).secondaryHeaderColor,
+              fontFamily: "Product",
+              fontWeight: FontWeight.w300,
+            ),
           ),
         ),
         leading: CupertinoButton(
           child: Row(
-            children: const [Icon(CupertinoIcons.back), Text('Back')],
+            children: [
+              const Icon(CupertinoIcons.back),
+              Text('Back', style: Theme.of(context).textTheme.headline5)
+            ],
           ),
           padding: EdgeInsets.zero,
           onPressed: () {
@@ -108,7 +119,7 @@ class _AddPageState extends State<AddPage> {
         ),
         trailing: CupertinoButton(
           padding: EdgeInsets.zero,
-          child: const Text('Done'),
+          child: Text('Done', style: Theme.of(context).textTheme.headline5),
           onPressed: () {
             bool verified = true;
             int errorCode = 0;
@@ -153,21 +164,29 @@ class _AddPageState extends State<AddPage> {
                 context: context,
                 builder: (context) {
                   return CupertinoAlertDialog(
-                    title: const Text('Error'),
+                    title: const Text(
+                      'Error',
+                      style: TextStyle(
+                          fontFamily: 'Product', fontWeight: FontWeight.w300),
+                    ),
                     content: Text(
                       (errorCode == 1)
                           ? 'You don\'t change anything'
                           : 'Please read the instructions below',
+                      style: const TextStyle(
+                          fontFamily: "Product", fontWeight: FontWeight.w300),
                     ),
                     actions: [
                       CupertinoDialogAction(
-                        child: const Text('OK'),
+                        child: Text('OK',
+                            style: Theme.of(context).textTheme.headline5),
                         onPressed: () {
                           Navigator.of(context).pop();
                         },
                       ),
                       CupertinoDialogAction(
-                        child: const Text('Instructions'),
+                        child: Text('Instructions',
+                            style: Theme.of(context).textTheme.headline5),
                         onPressed: () {
                           Navigator.of(context).pop();
                           showIntruction();
@@ -298,7 +317,7 @@ class _AddPageState extends State<AddPage> {
           ),
           actions: [
             CupertinoActionSheetAction(
-              child: const Text('OK'),
+              child: Text('OK', style: Theme.of(context).textTheme.headline5),
               onPressed: () {
                 Navigator.of(context).pop();
               },
