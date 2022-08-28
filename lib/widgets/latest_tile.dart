@@ -157,7 +157,7 @@ class LatestTile extends StatelessWidget {
   }
 
   void longPressActionMenu(BuildContext context) {
-    showCupertinoDialog(
+    showCupertinoModalPopup(
       context: context,
       builder: (BuildContext context) => CupertinoActionSheet(
         title: Text(
@@ -183,7 +183,11 @@ class LatestTile extends StatelessWidget {
             child: const Text('Detail'),
             onPressed: () {
               Navigator.of(context).pop();
-              debugPrint("Show Detail (revision)");
+              Navigator.of(context).push(
+                CupertinoPageRoute(
+                    builder: (context) => DetailPage(
+                        note: note, notelist: notelist, callback: callback)),
+              );
             },
           ),
           CupertinoActionSheetAction(

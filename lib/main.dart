@@ -1,10 +1,8 @@
 import 'package:electric_charge_note/views/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:electric_charge_note/theme.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter/services.dart';
-import 'package:electric_charge_note/models/statusbar.dart';
 
 void main() async {
   await Hive.initFlutter();

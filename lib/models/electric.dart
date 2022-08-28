@@ -1,5 +1,4 @@
 import 'package:electric_charge_note/models/note.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart';
 
 class Electric {

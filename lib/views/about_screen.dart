@@ -1,8 +1,6 @@
 import 'package:electric_charge_note/models/statusbar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart' show Theme;
-import 'package:flutter/scheduler.dart';
-import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -15,7 +13,6 @@ class AboutPage extends StatefulWidget {
 
 class _AboutPageState extends State<AboutPage> {
   String _appName = "";
-  String _packageName = "";
   String _version = "";
   String _buildNumber = "";
 
@@ -29,7 +26,6 @@ class _AboutPageState extends State<AboutPage> {
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
     setState(() {
       _appName = packageInfo.appName;
-      _packageName = packageInfo.packageName;
       _version = packageInfo.version;
       _buildNumber = packageInfo.buildNumber;
     });

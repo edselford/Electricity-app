@@ -129,7 +129,15 @@ class NoteListTile extends StatelessWidget {
             child: const Text('Detail'),
             onPressed: () {
               Navigator.of(context).pop();
-              debugPrint("Show Detail (revision)");
+              Navigator.of(context).push(
+                CupertinoPageRoute(
+                  builder: (context) => DetailPage(
+                    note: note,
+                    callback: callback,
+                    notelist: notelist,
+                  ),
+                ),
+              );
             },
           ),
           CupertinoActionSheetAction(
