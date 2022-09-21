@@ -1,6 +1,5 @@
 import 'package:electric_charge_note/models/note.dart';
 import 'package:electric_charge_note/models/hive_manager.dart';
-import 'package:electric_charge_note/models/statusbar.dart';
 import 'package:electric_charge_note/widgets/column_builder.dart';
 import 'package:electric_charge_note/widgets/info_tile.dart';
 import 'package:electric_charge_note/widgets/latest_tile.dart';
@@ -30,6 +29,14 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  List<Map> exportNote() {
+    List<Map> a = notelist.map((x) {
+      return x.toMap();
+    }).toList();
+
+    return a;
+  }
+
   void setNotelist() {
     notelist = db.getAllData().entries.map((x) {
       return Note(
@@ -44,7 +51,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    refreshStatusBar();
     return SafeArea(
       child: NestedScrollView(
         body: ListView(
@@ -113,9 +119,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(10),
                     color: Theme.of(context).primaryColor),
-                child: (notelist.isNotEmpty && notelist.length != 1)
+                child: (notelist.length > 1)
                     ? ColumnBuilder(
-                        itemCount: notelist.length - 1,
+                        itemCount: 10,
                         itemBuilder: (context, index) {
                           return NoteListTile(
                             note: notelist[index + 1],
@@ -144,11 +150,13 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         headerSliverBuilder: ((context, innerBoxIsScrolled) {
           return [
-            Navbar(callback: () {
-              setState(() {
-                setNotelist();
-              });
-            })
+            Navbar(
+                callback: () {
+                  setState(() {
+                    setNotelist();
+                  });
+                },
+                exportNote: exportNote)
           ];
         }),
       ),

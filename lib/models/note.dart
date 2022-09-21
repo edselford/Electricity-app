@@ -29,6 +29,16 @@ class Note {
     }.toString();
   }
 
+  Map toMap() {
+    return {
+      "id": id,
+      "time": time.toIso8601String(),
+      "size": size,
+      "firstsize": firstSize,
+      "lastsize": lastSize
+    };
+  }
+
   static Map<String, int> dayRangeCounter(
       DateTime startDate, DateTime endDate) {
     Duration difference = endDate.difference(startDate);

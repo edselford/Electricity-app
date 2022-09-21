@@ -1,9 +1,8 @@
-import 'package:flutter/cupertino.dart' show Color;
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 
 void refreshStatusBar() {
-  var brightness = SchedulerBinding.instance!.window.platformBrightness;
+  var brightness = SchedulerBinding.instance.window.platformBrightness;
   SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
     statusBarIconBrightness:
         (brightness == Brightness.dark) ? Brightness.light : Brightness.dark,
